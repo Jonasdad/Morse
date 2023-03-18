@@ -1,0 +1,79 @@
+defmodule Morse do
+  def morse() do
+    {:node, :na, {:node, 116,{:node, 109, {:node, 111, {:node, :na, {:node, 48, nil, nil}, {:node, 57, nil, nil}},
+        {:node, :na, nil, {:node, 56, nil, {:node, 58, nil, nil}}}},
+       {:node, 103, {:node, 113, nil, nil},
+        {:node, 122, {:node, :na, {:node, 44, nil, nil}, nil}, {:node, 55, nil, nil}}}},
+      {:node, 110, {:node, 107, {:node, 121, nil, nil}, {:node, 99, nil, nil}},
+       {:node, 100, {:node, 120, nil, nil},
+        {:node, 98, nil, {:node, 54, {:node, 45, nil, nil}, nil}}}}},
+     {:node, 101,
+      {:node, 97,
+       {:node, 119, {:node, 106, {:node, 49, {:node, 47, nil, nil}, {:node, 61, nil, nil}}, nil},
+        {:node, 112, {:node, :na, {:node, 37, nil, nil}, {:node, 64, nil, nil}}, nil}},
+       {:node, 114, {:node, :na, nil, {:node, :na, {:node, 46, nil, nil}, nil}},
+        {:node, 108, nil, nil}}},
+      {:node, 105,
+       {:node, 117, {:node, 32, {:node, 50, nil, nil}, {:node, :na, nil, {:node, 63, nil, nil}}},
+        {:node, 102, nil, nil}},
+       {:node, 115, {:node, 118, {:node, 51, nil, nil}, nil},
+        {:node, 104, {:node, 52, nil, nil}, {:node, 53, nil, nil}}}}}}
+  end
+
+  def test() do
+    map = Map.new()
+    list = []
+    decode_tree = morse()
+    map = encode_table(map, morse(), list)
+    string = 'pewpew'
+    seq = encode(string, map)
+    #seq1 = '.- .-.. .-.. ..-- -.-- --- ..- .-. ..-- -... .- ... . ..-- .- .-. . ..-- -... . .-.. --- -. --. ..-- - --- ..-- ..- ... '
+    #seq2 ='.... - - .--. ... ---... .----- .----- .-- .-- .-- .-.-.- -.-- --- ..- - ..- -... . .-.-.- -.-. --- -- .----- .-- .- - -.-. .... ..--.. ...- .----. -.. .--.-- ..... .---- .-- ....- .-- ----. .--.-- ..... --... --. .--.-- ..... ---.. -.-. .--.-- ..... .---- '
+    decode(decode_tree, seq)
+  end
+
+  # Decode - Using the binary tree: O(log(n))
+  # to find the encoded character
+  def decode({:node, char, _, _}, [32 | t]) do [char | decode(morse(), t)] end
+  def decode({:node, char, _left, right}, [?.|t]) do decode(right, t) end
+  def decode({:node, char, left, _right}, [?-|t]) do decode(left, t) end
+  def decode({:node, char, _left, _right}, []) do [] end
+
+
+  # Encode: O(n) * O(log(n)) = O(n*log(m))
+  # Map.fetch: O(log(n))
+  # Then combine the lists: O(n)
+  def encode([], _, acc) do List.to_charlist(acc) end
+  def encode(string, map) do encode(string, map, []) end
+  def encode([h|t], map, acc) do
+    {_, code} = Map.fetch(map, h)
+    encode(t, map, [code | acc])
+  end
+
+  # Encode table: O(log(n)) as we're iterating down a binary tree
+  def encode_table(map, {:node, :na, nil, nil}, _list) do map end
+  def encode_table(map, {:node, :na, nil, right}, list) do encode_table(map, right, list ++ '.') end
+  def encode_table(map, {:node, :na, left, nil}, list) do encode_table(map, left, list ++ '-') end
+  def encode_table(map, {:node, :na, left, right}, list) do
+    map = encode_table(map, left, list ++ '-')
+    encode_table(map, right, list ++ '.')
+  end
+  def encode_table(map, {:node, char, nil, nil}, list) do
+    Map.put(map, char, list)
+  end
+  def encode_table(map, {:node, char, left, nil}, list) do
+    map = Map.put(map, char, list)
+    encode_table(map, left, list ++ '-')
+  end
+  def encode_table(map, {:node, char, nil, right}, list) do
+    map = Map.put(map, char, list)
+    encode_table(map, right, list ++ '.')
+  end
+  def encode_table(map, {:node, char, left, right}, list) do
+    map = Map.put(map, char, list)
+    map = encode_table(map, left, list ++ '-')
+    encode_table(map, right, list ++ '.')
+  end
+
+
+end
