@@ -23,32 +23,42 @@ defmodule Morse do
   def test() do
     map = Map.new()
     list = []
-    decode_tree = morse()
     map = encode_table(map, morse(), list)
-    string = 'pewpew'
+    string = 'hej jag heter jonas och gillar programmering'
     seq = encode(string, map)
     #seq1 = '.- .-.. .-.. ..-- -.-- --- ..- .-. ..-- -... .- ... . ..-- .- .-. . ..-- -... . .-.. --- -. --. ..-- - --- ..-- ..- ... '
     #seq2 ='.... - - .--. ... ---... .----- .----- .-- .-- .-- .-.-.- -.-- --- ..- - ..- -... . .-.-.- -.-. --- -- .----- .-- .- - -.-. .... ..--.. ...- .----. -.. .--.-- ..... .---- .-- ....- .-- ----. .--.-- ..... --... --. .--.-- ..... ---.. -.-. .--.-- ..... .---- '
-    decode(decode_tree, seq)
+    decode(morse(), seq)
   end
 
   # Decode - Using the binary tree: O(log(n))
   # to find the encoded character
-  def decode({:node, char, _, _}, [32 | t]) do [char | decode(morse(), t)] end
   def decode({:node, char, _left, right}, [?.|t]) do decode(right, t) end
   def decode({:node, char, left, _right}, [?-|t]) do decode(left, t) end
-  def decode({:node, char, _left, _right}, []) do [] end
+  def decode({:node, _char, _left, _right}, []) do [] end
+  def decode({:node, char, _, _}, [32 | t]) do [char | decode(morse(), t)] end
 
 
-  # Encode: O(n) * O(log(n)) = O(n*log(m))
+  # Encode: (add_spaces) O(n) * (Map.fetch) O(log(n)) = O(n*log(m))
   # Map.fetch: O(log(n))
-  # Then combine the lists: O(n)
-  def encode([], _, acc) do List.to_charlist(acc) end
+  # Then combine the lists: O(1)
+  def encode([], _, acc) do IO.inspect("#{acc}");add_spaces(acc) end
   def encode(string, map) do encode(string, map, []) end
   def encode([h|t], map, acc) do
     {_, code} = Map.fetch(map, h)
-    encode(t, map, [code | acc])
+    encode(t, map, [code|acc])
   end
+
+  # Adds spaces to end of each encoded character.
+  # Complexity: O(n)
+  def add_spaces(list) do add_spaces(list, []) end
+  def add_spaces([], acc) do acc end
+  def add_spaces([h|t], acc) do
+    IO.inspect("Head: #{h}")
+    IO.inspect("Accumulator: #{acc}")
+    add_spaces(t, h++[?\s | acc])
+  end
+
 
   # Encode table: O(log(n)) as we're iterating down a binary tree
   def encode_table(map, {:node, :na, nil, nil}, _list) do map end
